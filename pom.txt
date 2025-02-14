@@ -1,9 +1,76 @@
-spring:
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.example</groupId>
+  <artifactId>gatling-kafka-performance-test</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <name>Gatling Kafka Performance Test</name>
+  <description>Performance testing Kafka with Gatling without using the plugin</description>
+
+  <properties>
+    <java.version>17</java.version>
+    <spring.boot.version>3.2.0</spring.boot.version>
+    <gatling.version>3.9.5</gatling.version>
+  </properties>
+
+  <!-- Repository for Spring releases (and other artifacts if needed) -->
+  <repositories>
+    <repository>
+      <id>spring-releases</id>
+      <url>https://repo.spring.io/release</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <!-- Spring Boot Starter -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+    
+    <!-- Spring Kafka -->
+    <dependency>
+      <groupId>org.springframework.kafka</groupId>
+      <artifactId>spring-kafka</artifactId>
+    </dependency>
+    
+    <!-- Gatling Core Dependency -->
+    <dependency>
+      <groupId>io.gatling</groupId>
+      <artifactId>gatling-core</artifactId>
+      <version>${gatling.version}</version>
+    </dependency>
+    
+    <!-- Gatling HTTP Dependency (if you plan to test HTTP as well) -->
+    <dependency>
+      <groupId>io.gatling</groupId>
+      <artifactId>gatling-http</artifactId>
+      <version>${gatling.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Spring Boot Maven Plugin -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+      <!-- Maven Compiler Plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
