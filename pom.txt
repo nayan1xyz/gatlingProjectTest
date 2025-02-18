@@ -5,12 +5,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.example</groupId>
-  <artifactId>gatling-kafka-performance-test</artifactId>
-  <version>1.0.0</version>
+  <artifactId>gatling-kafka-test</artifactId>
+  <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Gatling Kafka Performance Test</name>
-  <description>Performance testing Kafka with Gatling without using the plugin</description>
+  <description>Performance testing Kafka with Gatling (without Maven plugin)</description>
 
   <properties>
     <java.version>17</java.version>
@@ -18,8 +18,11 @@
     <gatling.version>3.9.5</gatling.version>
   </properties>
 
-  <!-- Repository for Spring releases (and other artifacts if needed) -->
   <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2/</url>
+    </repository>
     <repository>
       <id>spring-releases</id>
       <url>https://repo.spring.io/release</url>
@@ -32,25 +35,32 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
     </dependency>
-    
-    <!-- Spring Kafka -->
+
+    <!-- Spring Boot Kafka Starter -->
     <dependency>
-      <groupId>org.springframework.kafka</groupId>
-      <artifactId>spring-kafka</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-kafka</artifactId>
     </dependency>
-    
-    <!-- Gatling Core Dependency -->
+
+    <!-- Gatling Core Java (for performance testing) -->
     <dependency>
       <groupId>io.gatling</groupId>
-      <artifactId>gatling-core</artifactId>
+      <artifactId>gatling-core-java</artifactId>
       <version>${gatling.version}</version>
     </dependency>
     
-    <!-- Gatling HTTP Dependency (if you plan to test HTTP as well) -->
+    <!-- Gatling Java (optional additional Java DSL support) -->
     <dependency>
       <groupId>io.gatling</groupId>
-      <artifactId>gatling-http</artifactId>
+      <artifactId>gatling-java</artifactId>
       <version>${gatling.version}</version>
+    </dependency>
+    
+    <!-- JUnit Jupiter for testing (optional) -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
