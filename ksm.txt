@@ -1,0 +1,34 @@
+package com.example.gatlingkafka;
+
+import io.gatling.javaapi.core.*;
+import static io.gatling.javaapi.core.CoreDsl.*;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.kafka.core.KafkaTemplate;
+
+public class KafkaSimulation extends Simulation {
+    
+    private static KafkaTemplate<String, String> kafkaTemplate;
+    
+    // Static initializer to load the Spring context and retrieve the KafkaTemplate bean
+    static {
+        // Load the Spring context using only the KafkaProducerConfig configuration class
+        ApplicationContext context = SpringApplication.run(com.example.gatlingkafka.config.KafkaProducerConfig.class);
+        kafkaTemplate = context.getBean(KafkaTemplate.class);
+    }
+    
+    // Define a Gatling scenario that sends a message using KafkaTemplate
+    ScenarioBuilder scn = scenario("Kafka Load Test")
+        .repeat(1000).on(
+            exec(session -> {
+                String message = "Test message " + session.userId();
+                kafkaTemplate.send("REQUEST_TOPIC", message);
+                return session;
+            })
+        );
+    
+    {
+        setUp(scn.injectOpen(atOnceUsers(1)));
+    }
+}
