@@ -1,0 +1,18 @@
+package com.example.gatlingkafka;
+
+import io.gatling.app.Gatling;
+import io.gatling.core.config.GatlingPropertiesBuilder;
+
+public class GatlingRunner {
+    public static void main(String[] args) {
+        GatlingPropertiesBuilder props = new GatlingPropertiesBuilder();
+        // Specify directories for resources, results, and compiled classes
+        props.resourcesDirectory("src/test/resources");
+        props.resultsDirectory("target/gatling/results");
+        props.binariesDirectory("target/classes");
+        // Fully qualified name of your simulation class
+        props.simulationClass("com.example.gatlingkafka.KafkaSimulation");
+
+        Gatling.fromMap(props.build());
+    }
+}
