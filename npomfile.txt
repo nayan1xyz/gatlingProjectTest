@@ -1,48 +1,36 @@
 package kafka;
 
 import io.gatling.javaapi.core.*;
-import org.apache.kafka.common.header.Header;
-import org.apache.kafka.common.header.internals.RecordHeader;
-import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.galaxio.gatling.kafka.javaapi.protocol.KafkaProtocolBuilder;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import java.util.Map;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static org.galaxio.gatling.kafka.javaapi.KafkaDsl.*;
 
-public class KafkaSimulation extends Simulation {
+public class KafkaConsumerSimulation extends Simulation {
 
-    // Define Kafka protocol for the producer (sending to REQUEST topic)
-    private final KafkaProtocolBuilder kafkaProducerProtocol = kafka()
-            .topic("REQUEST")
+    // Define Kafka protocol for the consumer (listening to RESPONSE topic)
+    private final KafkaProtocolBuilder kafkaConsumerProtocol = kafka()
+            .topic("RESPONSE")
             .properties(Map.of(
-                    ProducerConfig.ACKS_CONFIG, "1",
-                    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
-                    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer",
-                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer"
+                    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
+                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName(),
+                    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName(),
+                    ConsumerConfig.GROUP_ID_CONFIG, "gatling-consumer-group"
             ));
 
-    // Create a header for the message (modify as needed)
-    private final RecordHeaders headers = new RecordHeaders(
-            new Header[]{ new RecordHeader("test-header", "value".getBytes()) }
-    );
-
-    // Producer scenario: send 1,000 messages to the REQUEST topic
-    private final ScenarioBuilder kafkaProducerScenario = scenario("Kafka Producer")
-            .repeat(1000, "counter").on(
-                exec(
-                    kafka("Send Request")
-                        .send(session -> {
-                            String key = "key_" + session.getInt("counter");
-                            String value = "value_" + session.getInt("counter");
-                            return new Object[]{ key, value, headers };
-                        })
-                )
+    // Consumer scenario: consume messages from the RESPONSE topic.
+    // Adjust the DSL as necessary based on plugin capabilities.
+    private final ScenarioBuilder kafkaConsumerScenario = scenario("Kafka Consumer")
+            .exec(
+                kafka("Consume Response")
+                    .consume() // Ensure this call aligns with your Kafka DSL version
             );
 
     {
         setUp(
-            kafkaProducerScenario.injectOpen(atOnceUsers(1))
-        ).protocols(kafkaProducerProtocol);
+            kafkaConsumerScenario.injectOpen(atOnceUsers(1))
+        ).protocols(kafkaConsumerProtocol);
     }
 }
