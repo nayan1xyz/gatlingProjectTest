@@ -1,57 +1,48 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.example.kafka</groupId>
-  <artifactId>kafka-gatling-poc</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+package kafka;
 
-  <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-    <gatling.version>3.11.6</gatling.version>
-  </properties>
+import io.gatling.javaapi.core.*;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.galaxio.gatling.kafka.javaapi.protocol.KafkaProtocolBuilder;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import java.util.Map;
+import static io.gatling.javaapi.core.CoreDsl.*;
+import static org.galaxio.gatling.kafka.javaapi.KafkaDsl.*;
 
-  <repositories>
-    <repository>
-      <id>confluent</id>
-      <url>https://packages.confluent.io/maven/</url>
-    </repository>
-  </repositories>
+public class KafkaSimulation extends Simulation {
 
-  <dependencies>
-    <!-- Gatling Kafka Plugin -->
-    <dependency>
-      <groupId>org.galaxio</groupId>
-      <artifactId>gatling-kafka-plugin_2.13</artifactId>
-      <version>0.12.0</version>
-      <scope>test</scope>
-    </dependency>
-    <!-- Gatling Core and App (Java API) -->
-    <dependency>
-      <groupId>io.gatling</groupId>
-      <artifactId>gatling-app</artifactId>
-      <version>${gatling.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <!-- Add any additional dependencies as required -->
-  </dependencies>
+    // Define Kafka protocol for the producer (sending to REQUEST topic)
+    private final KafkaProtocolBuilder kafkaProducerProtocol = kafka()
+            .topic("REQUEST")
+            .properties(Map.of(
+                    ProducerConfig.ACKS_CONFIG, "1",
+                    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
+                    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer",
+                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer"
+            ));
 
-  <build>
-    <plugins>
-      <!-- Surefire Plugin configuration to pick up Gatling simulations -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M7</version>
-        <configuration>
-          <includes>
-            <include>**/*Simulation.java</include>
-          </includes>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-</project>
+    // Create a header for the message (modify as needed)
+    private final RecordHeaders headers = new RecordHeaders(
+            new Header[]{ new RecordHeader("test-header", "value".getBytes()) }
+    );
+
+    // Producer scenario: send 1,000 messages to the REQUEST topic
+    private final ScenarioBuilder kafkaProducerScenario = scenario("Kafka Producer")
+            .repeat(1000, "counter").on(
+                exec(
+                    kafka("Send Request")
+                        .send(session -> {
+                            String key = "key_" + session.getInt("counter");
+                            String value = "value_" + session.getInt("counter");
+                            return new Object[]{ key, value, headers };
+                        })
+                )
+            );
+
+    {
+        setUp(
+            kafkaProducerScenario.injectOpen(atOnceUsers(1))
+        ).protocols(kafkaProducerProtocol);
+    }
+}
